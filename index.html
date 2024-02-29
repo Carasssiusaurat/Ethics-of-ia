@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My First Webpage</title>
+</head>
+
+<body>
+    <input type="file" id="file"></input>
+    <textarea name="converted" id="converted" cols="30" rows="10"></textarea>
+</body>
+
+<script>
+    const getData = (audioFile, callback) => {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            var data = event.target.result.split(',')
+                , decodedImageData = btoa(data[1]);                    // the actual conversion of data from binary to base64 format
+            callback(decodedImageData);
+        };
+        reader.readAsDataURL(audioFile);
+    }
+
+    const blobFunc = () => {
+        var blob = window.URL || window.webkitURL;
+        if (!blob) {
+            console.log('Your browser does not support Blob URLs :(');
+            return;
+        }
+
+        document.getElementById('file').addEventListener('change', function (event) {
+            var file = this.files[0],
+                fileURL = blob.createObjectURL(file);
+
+            console.log(file);
+            console.log('File name: ' + file.name);
+            console.log('File type: ' + file.type);
+            console.log('File BlobURL: ' + fileURL);
+
+            getData(file, (data) => {
+                document.getElementById('converted').value = data;
+                console.log(data);
+            });
+
+        });
+    }
+    blobFunc();
+</script>
+
+</html>
