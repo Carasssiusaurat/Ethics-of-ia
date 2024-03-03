@@ -6,17 +6,91 @@
 </head>
 
 <body>
-    <input type="file" id="file"></input>
+    <input type="file" id="songFile" placeholder="choose a song"></input>
+    <input type="file" id="pictureFile" accept="image/png"></input>
+    <button id="convert">Convert</button>
     <textarea name="converted" id="converted" cols="30" rows="10"></textarea>
+    <picture>
+        <img id="selectedImage" src="" alt="Selected Image">
+    </picture>
+    <picture>
+        <img id="createdImage" src="" alt="created Image">
+    </picture>
 </body>
 
 <script>
+    songDataBase10 = "";
+    pictureUrl = "";
+    pictureDimensions = {
+        x: 0,
+        y: 0
+    };
+    function stringToBase10(str) {
+        let base10 = '';
+        for (let i = 0; i < str.length; i++) {
+            const charCode = str.charCodeAt(i);
+            base10 += charCode;
+        }
+        return base10;
+    }
+
+    function getCoord(data, xSize) {
+        var xLen = xSize.length;
+        var x = data.slice(0, xLen);
+        if (parseInt(x) < parseInt(xSize)) {
+            return x;
+        }
+        x = data.slice(0, xLen - 1);
+        return x;        
+    }
+
+    function getColorElement(data) {
+        var element = data.slice(0, 3);
+        if (element < 255) {
+            return element;
+        }
+        element = data.slice(0, 2);
+        return element;
+    }
+
+    function dataToArt(data, xSize, ySize) {
+        var art = [];
+        for (var i = 0; i < data.length;) {
+            var x = getCoord(data, xSize);
+            data = data.slice(x.length)
+            i += x.length;
+            var y = getCoord(data, ySize);
+            data = data.slice(y.length)
+            i += y.length;
+            var r = getColorElement(data);
+            data = data.slice(r.length)
+            i += r.length;
+            var g = getColorElement(data);
+            data = data.slice(g.length)
+            i += g.length;
+            var b = getColorElement(data);
+            data = data.slice(b.length)
+            i += b.length;
+
+            element = {
+                coord: [x, y],
+                color: [r, g, b]
+            }
+            art.push(element);
+        }
+        console.log(art);
+        return art;
+    }
+
     const getData = (audioFile, callback) => {
         var reader = new FileReader();
         reader.onload = function (event) {
-            var data = event.target.result.split(',')
-                , decodedImageData = btoa(data[1]);                    // the actual conversion of data from binary to base64 format
-            callback(decodedImageData);
+            var data = event.target.result.split(',');
+            var decodedImageData = btoa(data[1]); // the actual conversion of data from binary to base64 format
+            //console.log(base10);
+            songDataBase10 = stringToBase10(decodedImageData);
+            dataToArt(songDataBase10, "1024", "1024");
+            callback(songDataBase10);
         };
         reader.readAsDataURL(audioFile);
     }
@@ -28,7 +102,65 @@
             return;
         }
 
-        document.getElementById('file').addEventListener('change', function (event) {
+        document.getElementById('convert').addEventListener('click', function (event) {
+            var songToPictureData = dataToArt(songDataBase10, pictureDimensions.x, pictureDimensions.y);
+            console.log("starting to create image")
+            var canvas = document.createElement('canvas');
+            canvas.width = pictureDimensions.x;
+            canvas.height = pictureDimensions.y;
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            img.src = pictureUrl;
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0);
+                for (var i = 0; i < songToPictureData.length; i++) {
+                    var element = songToPictureData[i];
+                    ctx.fillStyle = 'rgb(' + element.color[0] + ',' + element.color[1] + ',' + element.color[2] + ')';
+                    ctx.fillRect(element.coord[0], element.coord[1], 1, 1);
+                }
+                console.log("image created")
+                document.getElementById('createdImage').src = canvas.toDataURL();
+            }
+        });
+
+        document.getElementById('pictureFile').addEventListener('change', function (event) {
+            var file = this.files[0];
+            if (!file) {
+                return;
+            }
+            if (!file.type || !file.type.startsWith('image/png')) {
+                console.log('Please select a PNG image file.');
+                return;
+            }
+            var fileURL = blob.createObjectURL(file);
+
+            console.log('File name: ' + file.name);
+            console.log('File type: ' + file.type);
+            console.log('File BlobURL: ' + fileURL);
+
+            // Create a new image element
+            var img = new Image();
+
+            img.onload = function () {
+                console.log('Image dimensions: ' + this.width + 'x' + this.height);
+            }
+            pictureDimensions.x = img.width;
+            pictureDimensions.y = img.height;
+            pictureUrl = fileURL;
+            // Set the src attribute of the image element to the Blob URL
+            img.src = fileURL;
+
+            // Set the src attribute of the image element in the HTML to the Blob URL
+            document.getElementById('selectedImage').src = fileURL;
+
+            getData(file, (data) => {
+                document.getElementById('converted').value = data;
+                console.log(data);
+            });
+
+        });
+
+        document.getElementById('songFile').addEventListener('change', function (event) {
             var file = this.files[0],
                 fileURL = blob.createObjectURL(file);
 
@@ -39,7 +171,7 @@
 
             getData(file, (data) => {
                 document.getElementById('converted').value = data;
-                console.log(data);
+              //  console.log(data);
             });
 
         });
