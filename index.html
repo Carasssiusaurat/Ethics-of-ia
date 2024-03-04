@@ -107,6 +107,104 @@
         reader.readAsDataURL(audioFile);
     }
 
+    function createGrid() {
+        var grid = [];
+        for (var i = 0; i < pictureDimensions.x; i++) {
+            var row = new Array(pictureDimensions.y).fill({
+                state: cellState.none,
+                color: deadColor
+            });
+            grid.push(row);
+        }
+        return grid;
+    }
+
+    function fillGrid(grid, data) {
+        for (var i = 0; i < data.length; i++) {
+            var element = data[i];
+            var x = element.coord[0];
+            var y = element.coord[1];
+            var color = element.color;
+            console.log("x : ",parseInt(x), ",y :", y, ", max x: ", pictureDimensions.x, ", max y: ", pictureDimensions.y);
+            console.log("line length: ", grid[parseInt(x)].length);
+            grid[parseInt(x)][y] = {
+                state: cellState.alive,
+                color: color
+            }
+        }
+        return grid;
+    }
+
+    function getNeighbors(grid, x, y) {
+        var neighbors = [];
+        for (var i = -1; i < 2; i++) {
+            for (var j = -1; j < 2; j++) {
+                if (i === 0 && j === 0) {
+                    continue;
+                }
+                var newX = x + i;
+                var newY = y + j;
+                if (newX >= 0 && newX < grid.length && newY >= 0 && newY < grid[0].length) {
+                    neighbors.push(grid[newX][newY]);
+                }
+            }
+        }
+        return neighbors;
+    }
+
+    function mashupNeighborsColors(neighbors) {
+        var color = [0, 0, 0];
+        for (var i = 0; i < neighbors.length; i++) {
+            color[0] += neighbors[i].color[0];
+            color[1] += neighbors[i].color[1];
+            color[2] += neighbors[i].color[2];
+        }
+        color[0] = Math.floor(color[0] / neighbors.length);
+        color[1] = Math.floor(color[1] / neighbors.length);
+        color[2] = Math.floor(color[2] / neighbors.length);
+        return color;
+    }
+
+    function gameLogic(grid) {
+        var newGrid = createGrid();
+        for (var i = 0; i < grid.length; i++) {
+            for (var j = 0; j < grid[i].length; j++) {
+                var cell = grid[i][j];
+                var neighbors = getNeighbors(grid, i, j);
+                var aliveNeighbors = neighbors.filter(neighbor => neighbor.state === cellState.alive);
+                if (cell.state === cellState.alive) {
+                    if (aliveNeighbors.length < 2 || aliveNeighbors.length > 3) {
+                        newGrid[i][j] = {
+                            state: cellState.dead,
+                            color: deadColor
+                        }
+                    } else {
+                        newGrid[i][j] = cell;
+                    }
+                } else {
+                    if (aliveNeighbors.length === 3) {
+                        newGrid[i][j] = {
+                            state: cellState.alive,
+                            color: aliveNeighbors[0].color
+                        }
+                    } else {
+                        newGrid[i][j] = cell;
+                    }
+                }
+            }
+        }
+        return newGrid;
+    }
+
+    function gameOfLife(data) {
+        var grid = createGrid();
+        grid = fillGrid(grid, data);
+
+        for(var i = 0; i < 100; i++) {
+            grid = gameLogic(grid);
+        }
+        return grid;
+    }
 
     const blobFunc = () => {
         var blob = window.URL || window.webkitURL;
@@ -138,14 +236,29 @@
                 console.log("x: " + pictureDimensions.x + " y: " + pictureDimensions.y);
                 console.log("Song data: " + songDataBase10.length + " characters");
                 var songToPictureData = dataToArt(songDataBase10, pictureDimensions.x.toString(), pictureDimensions.y.toString());
-                
+                var lifeGrid = gameOfLife(songToPictureData);
                 //console.log(songToPictureData)
                 console.log("Drawing song data...");
-                for (var i = 0; i < songToPictureData.length; i++) {
-                    var element = songToPictureData[i];
-                    ctx.fillStyle = 'rgb(' + element.color[0] + ',' + element.color[1] + ',' + element.color[2] + ')';
-                    ctx.fillRect(element.coord[0], element.coord[1], element.shape, element.shape);
+                for (var i = 0; i < lifeGrid.length; i++) {
+                    for (var j = 0; j < lifeGrid[i].length; j++) {
+                        var cell = lifeGrid[i][j];
+                        if (cell.state === cellState.none) {
+                            continue;
+                        } else if (cell.state === cellState.dead) {
+                            ctx.fillStyle = 'rgb(' + deadColor[0] + ',' + deadColor[1] + ',' + deadColor[2] + ')';
+                            ctx.fillRect(i, j, 1, 1);
+                            continue;
+                        }
+                        ctx.fillStyle = 'rgb(' + cell.color[0] + ',' + cell.color[1] + ',' + cell.color[2] + ')';
+                        ctx.fillRect(i, j, 10, 10);
+                    }
                 }
+                
+                //for (var i = 0; i < songToPictureData.length; i++) {
+                //    var element = songToPictureData[i];
+                //    ctx.fillStyle = 'rgb(' + element.color[0] + ',' + element.color[1] + ',' + element.color[2] + ')';
+                //    ctx.fillRect(element.coord[0], element.coord[1], element.shape, element.shape);
+                //}
                 console.log("Image created.");
                 var createdImageElement = document.getElementById('createdImage');
                 if (createdImageElement) {
