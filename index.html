@@ -16,6 +16,9 @@
     <picture>
         <img id="createdImage" src="" alt="created Image">
     </picture>
+    <picture>
+        <img id="LifeImage" src="" alt="created Image">
+    </picture>
 </body>
 
 <script>
@@ -25,7 +28,13 @@
         x: 0,
         y: 0
     };
-    testData = "85498682101107705181857066818570110908470838710874878385706681857071818570668185491138188108787786747186711167881857066818690668185706686698671841087484811106610597857472866978678671827386109116104861221041108487112678686701158110753668185706681107706681857069828811278821087484858466122818570668185786681857066841091208381108827083857066818570828185706681861001178611011210482501206889106781157810710871871109010581122825286107861158685491108185706681841046681857067834911284811087090877112011583859067977178538271539085857";
+    cellState = {
+        dead: 0,
+        alive: 1,
+        none: 2
+    }
+    const deadColor = [255, 255, 255];
+
     function stringToBase10(str) {
         let base10 = '';
         for (let i = 0; i < str.length; i++) {
@@ -37,9 +46,7 @@
 
     function getCoord(data, xSize) {
         var xLen = xSize.length;
-        console.log('xLen :', xLen);
         var x = data.slice(0, xLen);
-        console.log('x :', x);
         if (x < xSize) {
             return x;
         }
@@ -59,7 +66,6 @@
     function dataToArt(data, xSize, ySize) {
         var art = [];
         for (var i = 0; i < data.length;) {
-            console.log(i);
             var x = getCoord(data, xSize);
             data = data.slice(x.length)
             i += x.length;
@@ -75,10 +81,13 @@
             var b = getColorElement(data);
             data = data.slice(b.length)
             i += b.length;
-
+            var shape = data[i];
+            data = data.slice(1);
+            i += 1;
             element = {
                 coord: [x, y],
-                color: [r, g, b]
+                color: [r, g, b],
+                shape: shape
             }
             art.push(element);
         }
@@ -98,6 +107,7 @@
         reader.readAsDataURL(audioFile);
     }
 
+
     const blobFunc = () => {
         var blob = window.URL || window.webkitURL;
         if (!blob) {
@@ -114,6 +124,16 @@
             canvas.height = pictureDimensions.y;
             var ctx = canvas.getContext('2d');
 
+            var lifeCanvas = document.createElement('canvas');
+            lifeCanvas.width = pictureDimensions.x;
+            lifeCanvas.height = pictureDimensions.y;
+            var lifeCtx = lifeCanvas.getContext('2d');
+
+            var lifeImg = new Image();
+            lifeImg.onload = function() {
+                lifeCtx.drawImage(lifeImg, 0, 0);
+                drawLifeImage();
+            };
             var img = new Image();
             img.onload = function() {
                 ctx.drawImage(img, 0, 0);
@@ -124,16 +144,38 @@
             };
             img.src = pictureUrl;
 
+            function drawLifeImage() {
+    var songToPictureData = dataToArt(songDataBase10, pictureDimensions.x.toString(), pictureDimensions.y.toString());
+    var lifedData = gameOfLife(songToPictureData);
+
+    for (let i = 0; i < lifedData.length; i++) {
+        for (let j = 0; j < lifedData[0].length; j++) {
+            if (lifedData[i][j] != null) {
+                color = lifedData[i][j].getColor;
+                lifeCtx.fillStyle = 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
+                lifeCtx.fillRect(j, i, 1, 1); // Swapping i and j indices
+            }
+        }
+    }
+    var lifeImageElement = document.getElementById('LifeImage');
+    if (lifeImageElement) {
+        lifeImageElement.src = lifeCanvas.toDataURL();
+    } else {
+        console.error("Could not find element with id 'LifeImage' to display the created image.");
+    }
+}
+
             function drawSongData() {
                 console.log("x: " + pictureDimensions.x + " y: " + pictureDimensions.y);
                 console.log("Song data: " + songDataBase10.length + " characters");
                 var songToPictureData = dataToArt(songDataBase10, pictureDimensions.x.toString(), pictureDimensions.y.toString());
-                console.log(songToPictureData)
+                
+                //console.log(songToPictureData)
                 console.log("Drawing song data...");
                 for (var i = 0; i < songToPictureData.length; i++) {
                     var element = songToPictureData[i];
                     ctx.fillStyle = 'rgb(' + element.color[0] + ',' + element.color[1] + ',' + element.color[2] + ')';
-                    ctx.fillRect(element.coord[0], element.coord[1], 1, 1);
+                    ctx.fillRect(element.coord[0], element.coord[1], element.shape, element.shape);
                 }
                 console.log("Image created.");
                 var createdImageElement = document.getElementById('createdImage');
