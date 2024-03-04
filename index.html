@@ -124,16 +124,6 @@
             canvas.height = pictureDimensions.y;
             var ctx = canvas.getContext('2d');
 
-            var lifeCanvas = document.createElement('canvas');
-            lifeCanvas.width = pictureDimensions.x;
-            lifeCanvas.height = pictureDimensions.y;
-            var lifeCtx = lifeCanvas.getContext('2d');
-
-            var lifeImg = new Image();
-            lifeImg.onload = function() {
-                lifeCtx.drawImage(lifeImg, 0, 0);
-                drawLifeImage();
-            };
             var img = new Image();
             img.onload = function() {
                 ctx.drawImage(img, 0, 0);
@@ -143,27 +133,6 @@
                 console.error("Error loading image:", pictureUrl);
             };
             img.src = pictureUrl;
-
-            function drawLifeImage() {
-    var songToPictureData = dataToArt(songDataBase10, pictureDimensions.x.toString(), pictureDimensions.y.toString());
-    var lifedData = gameOfLife(songToPictureData);
-
-    for (let i = 0; i < lifedData.length; i++) {
-        for (let j = 0; j < lifedData[0].length; j++) {
-            if (lifedData[i][j] != null) {
-                color = lifedData[i][j].getColor;
-                lifeCtx.fillStyle = 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
-                lifeCtx.fillRect(j, i, 1, 1); // Swapping i and j indices
-            }
-        }
-    }
-    var lifeImageElement = document.getElementById('LifeImage');
-    if (lifeImageElement) {
-        lifeImageElement.src = lifeCanvas.toDataURL();
-    } else {
-        console.error("Could not find element with id 'LifeImage' to display the created image.");
-    }
-}
 
             function drawSongData() {
                 console.log("x: " + pictureDimensions.x + " y: " + pictureDimensions.y);
