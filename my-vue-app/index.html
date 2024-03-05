@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ethics of IA</title>
+</head>
+
+<body>
+    <div class="wrapper input">
+
+        <div>
+            <div>
+                <label for="iterations" class="btn">The number of iterations</label>
+                <input type="number" name="iterations" id="iterations" value="100">
+            </div>
+
+        </div>
+
+        <div>
+            <div>
+                <label for="songFile" class="btn">Select Song</label>
+                <input type="file" id="songFile"></input>
+            </div>
+            <!-- <textarea name="convertedSong" id="convertedSong" cols="30" rows="10" disabled></textarea> -->
+        </div>
+
+        <div>
+            <div>
+                <label for="pictureFile" class="btn">Select Image</label>
+                <input type="file" id="pictureFile" accept="image/png"></input>
+            </div>
+            <!-- <textarea name="convertedPicture" id="convertedPicture" cols="30" rows="10" disabled></textarea> -->
+        </div>
+
+
+
+
+
+    </div>
+
+    <div class="wrapper">
+        <h1 id="waitLoad" style="display: none;">Wait a bit, we load the file</h1>
+        <h1 id="waitConvert" style="display: none;">Wait a bit, we generate the rendering</h1>
+        <button class="glow-on-hover" id="convert">Convert</button>
+    </div>
+
+    <div class="wrapper">
+
+        <div class="container">
+            <input type="checkbox" id="selectedZoomCheck">
+            <label for="selectedZoomCheck">
+                <img id="selectedImage" src="" alt="Selected Image">
+            </label>
+        </div>
+
+        <div class="container">
+            <input type="checkbox" id="createdZoomCheck">
+            <label for="createdZoomCheck">
+                <img id="createdImage" src="" alt="Celected Image">
+            </label>
+        </div>
+
+    </div>
+    <script type="module" src="/main.js"></script>
+</body>
+
+</html>
