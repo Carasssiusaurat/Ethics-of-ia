@@ -1,0 +1,17 @@
+# Song to GameOfLife
+
+## Installation
+
+Use the package manager npm to install.
+
+```bash
+cd my-vue-app
+npm install
+npm run dev
+```
+
+## Usage
+
+Go on http://localhost:5173/
+
+Import data and generate
