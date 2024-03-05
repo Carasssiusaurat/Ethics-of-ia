@@ -5,6 +5,10 @@ body {
 
     display: flex;
     background: #0F0F0F;
+
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 .wrapper {
